@@ -1,60 +1,24 @@
 // Create web server
-// Run server
-// Send response to client
-// Receive request from client
-// Get data from client
-// Send data to client
-// Receive data from client
+// 1. Create a web server
+// 2. Read the file
+// 3. Send the file to the browser
+// 4. Show the file in the browser
 
-// 1. Create web server
-const http = require('http');
-const fs = require('fs');
-const url = require('url');
-const qs = require('querystring');
-const template = require('./lib/template.js');
+// Require the http module
+var http = require('http');
+// Require the fs module
+var fs = require('fs');
 
-const app = http.createServer((request, response) => {
-    const _url = request.url;
-    const queryData = url.parse(_url, true).query;
-    const pathname = url.parse(_url, true).pathname;
+// Create a server
+var server = http.createServer(function(req, res) {
+    console.log('Request was made: ' + req.url);
+    res.writeHead(200, {'Content-Type': 'text/html'});
+    // Read the file
+    var myReadStream = fs.createReadStream(__dirname + '/index.html', 'utf8');
+    // Send the file to the browser
+    myReadStream.pipe(res);
+});
 
-    if(pathname === '/') {
-        if(queryData.id === undefined) {
-            fs.readdir('./data', (error, filelist) => {
-                const title = 'Welcome';
-                const description = 'Hello, Node.js';
-                const list = template.list(filelist);
-                const html = template.HTML(title, list, `<h2>${title}</h2><p>${description}</p>`, `<a href="/create">create</a>`);
-                response.writeHead(200);
-                response.end(html);
-            });
-        } else {
-            fs.readdir('./data', (error, filelist) => {
-                fs.readFile(`data/${queryData.id}`, 'utf8', (error, description) => {
-                    const title = queryData.id;
-                    const list = template.list(filelist);
-                    const html = template.HTML(title, list, `<h2>${title}</h2><p>${description}</p>`, `<a href="/create">create</a> <a href="/update?id=${title}">update</a>`);
-                    response.writeHead(200);
-                    response.end(html);
-                });
-            });
-        }
-    } else if(pathname === '/create') {
-        fs.readdir('./data', (error, filelist) => {
-            const title = 'WEB - create';
-            const list = template.list(filelist);
-            const html = template.HTML(title, list, `
-                <form action="/create_process" method="post">
-                    <p><input type="text" name="title" placeholder="title"></p>
-                    <p>
-                        <textarea name="description" placeholder="description"></textarea>
-                    </p>
-                    <p>
-                        <input type="submit">
-                    </p>
-                </form>
-            `, '');
-            response.writeHead(200);
-            response.end(html);
-        });
-    }});
+// Listen to a port
+server.listen(3000, 'localhost'); // Fixed the unterminated string literal error by adding a closing quotation mark
+
